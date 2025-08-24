@@ -1,33 +1,36 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import express from "express";
+import bodyParser from "body-parser";
+import { askChatGPT } from "./chatgpt.js";
+import { sendNotification } from "./notify.js";
 
 const app = express();
 app.use(bodyParser.json());
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// صفحة رئيسية
-app.get('/', (req, res) => {
-  res.send(`
-    <h1>Dark Control Server</h1>
-    <p>لوحة التحكم:</p>
-    <ul>
-      <li><a href="/api/chatgpt/test">اختبار ChatGPT</a></li>
-      <li><a href="/api/notify/test">اختبار الإشعارات</a></li>
-    </ul>
-  `);
+// ✅ Route للتحقق من تشغيل السيرفر
+app.get("/", (req, res) => {
+  res.send("✅ Dark Control Server is Running");
 });
 
-// استدعاء المسارات
-import chatgptRoutes from './chatgpt.js';
-import notifyRoutes from './notify.js';
+// ✅ Route لإرسال سؤال إلى ChatGPT
+app.post("/ask", async (req, res) => {
+  try {
+    const { question } = req.body;
+    if (!question) return res.status(400).json({ error: "Missing question" });
 
-app.use('/api/chatgpt', chatgptRoutes);
-app.use('/api/notify', notifyRoutes);
+    const response = await askChatGPT(question);
 
-// تشغيل السيرفر
+    // أرسل إشعار عند كل سؤال جديد
+    await sendNotification(`📩 New ChatGPT Request:\n${question}`);
+
+    res.json({ answer: response });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// ✅ تشغيل الخادم
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
