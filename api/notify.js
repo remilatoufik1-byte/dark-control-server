@@ -1,35 +1,23 @@
-import express from 'express';
-import fetch from 'node-fetch';
+import fetch from "node-fetch";
 
-const router = express.Router();
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-// اختبار
-router.get('/test', (req, res) => {
-  res.send('✅ إشعارات تيليجرام جاهزة');
-});
-
-// إرسال إشعار
-router.post('/', async (req, res) => {
-  const { message } = req.body;
-
-  if (!message) return res.status(400).json({ error: '❌ أدخل الرسالة' });
-
-  try {
-    const url = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: process.env.TELEGRAM_CHAT_ID,
-        text: message
-      })
-    });
-
-    const data = await response.json();
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: '❌ فشل في إرسال الإشعار' });
+export async function sendNotification(message) {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+    console.warn("⚠️ Telegram credentials are missing");
+    return;
   }
-});
 
-export default router;
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: TELEGRAM_CHAT_ID,
+      text: message,
+    }),
+  });
+
+  return response.json();
+}
