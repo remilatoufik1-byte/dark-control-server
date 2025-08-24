@@ -1,37 +1,22 @@
-import express from 'express';
-import fetch from 'node-fetch';
+import fetch from "node-fetch";
 
-const router = express.Router();
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// اختبار
-router.get('/test', (req, res) => {
-  res.send('✅ ChatGPT API جاهزة');
-});
+export async function askChatGPT(prompt) {
+  const url = "https://api.openai.com/v1/chat/completions";
 
-// تفاعل مع ChatGPT
-router.post('/', async (req, res) => {
-  const { prompt } = req.body;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
 
-  if (!prompt) return res.status(400).json({ error: '❌ الرجاء إدخال النص' });
-
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4',
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
-    const data = await response.json();
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: '❌ فشل في الاتصال بـ OpenAI' });
-  }
-});
-
-export default router;
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || "⚠️ No response from ChatGPT";
+}
