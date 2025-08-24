@@ -6,3 +6,8 @@
     "start": "node api/index.js"
   }
 }
+{
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}
