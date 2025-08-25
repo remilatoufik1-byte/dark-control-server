@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dark Control Server</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>لوحة تحكم Dark Control</h1>
+    
+    <div class="box">
+      <h2>إرسال طلب إلى ChatGPT</h2>
+      <textarea id="prompt" placeholder="أدخل النص هنا..."></textarea>
+      <button onclick="sendPrompt()">إرسال</button>
+      <p id="response"></p>
+    </div>
+
+    <div class="box">
+      <h2>إرسال إشعار</h2>
+      <input type="text" id="notifyMessage" placeholder="أدخل الإشعار هنا">
+      <button onclick="sendNotification()">إرسال إشعار</button>
+      <p id="notifyStatus"></p>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
