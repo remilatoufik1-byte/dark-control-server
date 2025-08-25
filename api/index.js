@@ -1,54 +1,66 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const chatForm = document.getElementById("chat-form");
-  const chatInput = document.getElementById("chat-input");
-  const chatResponse = document.getElementById("chat-response");
+export default function Home() {
+  const sendMessage = async () => {
+    const message = document.getElementById("message").value;
+    if (!message) return alert("أدخل الرسالة أولاً");
 
-  const notifyForm = document.getElementById("notify-form");
-  const notifyInput = document.getElementById("notify-input");
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message }),
+    });
 
-  // ✅ إرسال الرسالة إلى ChatGPT عبر API
-  chatForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+    const data = await res.json();
+    alert(data.response || "تم الإرسال!");
+  };
 
-    const message = chatInput.value.trim();
-    if (!message) return;
+  const sendNotification = async () => {
+    const notification = document.getElementById("notification").value;
+    if (!notification) return alert("أدخل الإشعار أولاً");
 
-    chatResponse.textContent = "جارٍ الإرسال...";
+    const res = await fetch("/api/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notification }),
+    });
 
-    try {
-      const response = await fetch("/api/chatgpt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message })
-      });
+    const data = await res.json();
+    alert(data.message || "تم إرسال الإشعار!");
+  };
 
-      const data = await response.json();
-      chatResponse.textContent = data.reply || "لم يتم استلام رد.";
-    } catch (error) {
-      console.error(error);
-      chatResponse.textContent = "حدث خطأ أثناء الاتصال.";
-    }
-  });
+  return (
+    <div style={{
+      fontFamily: "Arial, sans-serif",
+      padding: "30px",
+      maxWidth: "600px",
+      margin: "auto",
+      backgroundColor: "#111",
+      color: "#fff",
+      borderRadius: "12px",
+      boxShadow: "0 0 20px rgba(0,0,0,0.5)"
+    }}>
+      <h1 style={{ textAlign: "center", marginBottom: "20px" }}>Dark Control</h1>
 
-  // ✅ إرسال إشعار
-  notifyForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+      <div style={{ marginBottom: "20px" }}>
+        <h3>إرسال رسالة إلى ChatGPT</h3>
+        <textarea id="message" placeholder="اكتب رسالتك هنا..." style={{
+          width: "100%", height: "100px", padding: "10px", borderRadius: "8px", border: "none"
+        }}></textarea>
+        <button onClick={sendMessage} style={{
+          width: "100%", marginTop: "10px", padding: "12px", background: "#0070f3", color: "#fff",
+          fontSize: "16px", border: "none", borderRadius: "8px", cursor: "pointer"
+        }}>إرسال إلى ChatGPT</button>
+      </div>
 
-    const notification = notifyInput.value.trim();
-    if (!notification) return;
-
-    try {
-      await fetch("/api/notify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notification })
-      });
-
-      alert("تم إرسال الإشعار بنجاح!");
-      notifyInput.value = "";
-    } catch (error) {
-      console.error(error);
-      alert("فشل في إرسال الإشعار.");
-    }
-  });
-});
+      <div>
+        <h3>إرسال إشعار</h3>
+        <input id="notification" type="text" placeholder="أدخل الإشعار هنا" style={{
+          width: "100%", padding: "10px", borderRadius: "8px", border: "none"
+        }} />
+        <button onClick={sendNotification} style={{
+          width: "100%", marginTop: "10px", padding: "12px", background: "#e91e63", color: "#fff",
+          fontSize: "16px", border: "none", borderRadius: "8px", cursor: "pointer"
+        }}>إرسال إشعار</button>
+      </div>
+    </div>
+  );
+}
