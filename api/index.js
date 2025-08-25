@@ -1,17 +1,54 @@
-export default function handler(req, res) {
-  // تحقق من طريقة الطلب
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
+document.addEventListener("DOMContentLoaded", () => {
+  const chatForm = document.getElementById("chat-form");
+  const chatInput = document.getElementById("chat-input");
+  const chatResponse = document.getElementById("chat-response");
 
-  // تحقق من وجود المفتاح السري
-  const clientKey = req.headers['x-secret-key'];
-  const serverKey = process.env.SECRET_API_KEY;
+  const notifyForm = document.getElementById("notify-form");
+  const notifyInput = document.getElementById("notify-input");
 
-  if (!clientKey || clientKey !== serverKey) {
-    return res.status(403).json({ error: 'Forbidden: Invalid Secret Key' });
-  }
+  // ✅ إرسال الرسالة إلى ChatGPT عبر API
+  chatForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  // هنا تضع الكود الأساسي (مثلاً: الاتصال بـ ChatGPT)
-  return res.status(200).json({ message: 'تم التحقق بنجاح، المفتاح صحيح ✅' });
-}
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    chatResponse.textContent = "جارٍ الإرسال...";
+
+    try {
+      const response = await fetch("/api/chatgpt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message })
+      });
+
+      const data = await response.json();
+      chatResponse.textContent = data.reply || "لم يتم استلام رد.";
+    } catch (error) {
+      console.error(error);
+      chatResponse.textContent = "حدث خطأ أثناء الاتصال.";
+    }
+  });
+
+  // ✅ إرسال إشعار
+  notifyForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const notification = notifyInput.value.trim();
+    if (!notification) return;
+
+    try {
+      await fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notification })
+      });
+
+      alert("تم إرسال الإشعار بنجاح!");
+      notifyInput.value = "";
+    } catch (error) {
+      console.error(error);
+      alert("فشل في إرسال الإشعار.");
+    }
+  });
+});
