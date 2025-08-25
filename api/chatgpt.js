@@ -1,22 +1,32 @@
-import fetch from "node-fetch";
+import axios from 'axios';
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-export async function askChatGPT(prompt) {
-  const url = "https://api.openai.com/v1/chat/completions";
+  const { message } = req.body;
+  if (!message) {
+    return res.status(400).json({ error: 'Message is required' });
+  }
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-4",
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
+  try {
+    const response = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: 'gpt-4',
+        messages: [{ role: 'user', content: message }]
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
 
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content || "⚠️ No response from ChatGPT";
+    res.status(200).json({ reply: response.data.choices[0].message.content });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 }
