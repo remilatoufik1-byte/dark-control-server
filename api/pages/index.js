@@ -3,75 +3,69 @@ import { useState } from "react";
 export default function Home() {
   const [message, setMessage] = useState("");
   const [response, setResponse] = useState("");
-  const [notify, setNotify] = useState("");
+  const [notification, setNotification] = useState("");
+  const [notifyResponse, setNotifyResponse] = useState("");
 
-  // إرسال طلب إلى ChatGPT
+  // إرسال رسالة إلى ChatGPT
   const sendMessage = async () => {
-    if (!message.trim()) return;
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
-      });
-
-      const data = await res.json();
-      setResponse(data.reply || "لا يوجد رد");
-    } catch (error) {
-      setResponse("حدث خطأ أثناء الاتصال بالخادم");
-    }
+    if (!message) return;
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message }),
+    });
+    const data = await res.json();
+    setResponse(data.reply || "لا يوجد رد");
   };
 
   // إرسال إشعار
   const sendNotification = async () => {
-    if (!notify.trim()) return;
-
-    try {
-      await fetch("/api/notify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notify }),
-      });
-      alert("تم إرسال الإشعار بنجاح!");
-      setNotify("");
-    } catch (error) {
-      alert("حدث خطأ أثناء إرسال الإشعار");
-    }
+    if (!notification) return;
+    const res = await fetch("/api/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notification }),
+    });
+    const data = await res.json();
+    setNotifyResponse(data.message || "تم الإرسال");
   };
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      <h1>Dark Control</h1>
+    <div style={{ fontFamily: "Arial, sans-serif", padding: "30px" }}>
+      <h1>📡 Dark Control</h1>
 
-      <div style={{ marginBottom: "20px" }}>
+      {/* قسم ChatGPT */}
+      <div style={{ marginBottom: "40px" }}>
         <h2>إرسال طلب إلى ChatGPT</h2>
         <textarea
           placeholder="اكتب رسالتك هنا..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          rows={4}
-          style={{ width: "100%", marginBottom: "10px" }}
+          style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
         />
-        <button onClick={sendMessage}>إرسال إلى ChatGPT</button>
-        {response && (
-          <div style={{ marginTop: "10px", padding: "10px", background: "#eee" }}>
-            <strong>الرد:</strong> {response}
-          </div>
-        )}
+        <br />
+        <button onClick={sendMessage} style={{ padding: "10px 20px" }}>
+          إرسال إلى ChatGPT
+        </button>
+        <p><b>الرد:</b> {response}</p>
       </div>
 
+      {/* قسم الإشعارات */}
       <div>
         <h2>إرسال إشعار</h2>
-        <textarea
+        <input
+          type="text"
           placeholder="أدخل الإشعار هنا"
-          value={notify}
-          onChange={(e) => setNotify(e.target.value)}
-          rows={2}
-          style={{ width: "100%", marginBottom: "10px" }}
+          value={notification}
+          onChange={(e) => setNotification(e.target.value)}
+          style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
         />
-        <button onClick={sendNotification}>إرسال إشعار</button>
+        <br />
+        <button onClick={sendNotification} style={{ padding: "10px 20px" }}>
+          إرسال إشعار
+        </button>
+        <p><b>النتيجة:</b> {notifyResponse}</p>
       </div>
     </div>
   );
-  }
+}
