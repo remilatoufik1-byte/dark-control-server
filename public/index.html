@@ -8,15 +8,18 @@
 </head>
 <body>
   <h1>Dark Control</h1>
-  <div class="chat">
-    <textarea id="message" placeholder="اكتب رسالتك هنا..."></textarea>
-    <button onclick="sendMessage()">إرسال إلى ChatGPT</button>
-    <p id="reply"></p>
+  <div class="container">
+    <textarea id="chatInput" placeholder="اكتب رسالتك لـ ChatGPT"></textarea>
+    <button onclick="sendToChatGPT()">إرسال إلى ChatGPT</button>
+    <p id="chatResponse"></p>
   </div>
-  <div class="notify">
-    <input type="text" id="notification" placeholder="أدخل الإشعار هنا">
+
+  <div class="container">
+    <textarea id="notifyInput" placeholder="أدخل الإشعار هنا"></textarea>
     <button onclick="sendNotification()">إرسال إشعار</button>
+    <p id="notifyResponse"></p>
   </div>
+
   <script src="script.js"></script>
 </body>
 </html>
