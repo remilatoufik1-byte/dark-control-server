@@ -16,16 +16,19 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: "gpt-4o-mini",
         messages: [{ role: "user", content: message }],
       }),
     });
 
     const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || "لم يتم الحصول على رد";
 
-    return res.status(200).json({ response: reply });
+    if (data.choices && data.choices.length > 0) {
+      return res.status(200).json({ reply: data.choices[0].message.content });
+    } else {
+      return res.status(500).json({ error: "لم يتم استرجاع رد من ChatGPT" });
+    }
   } catch (error) {
-    return res.status(500).json({ error: "حدث خطأ أثناء المعالجة" });
+    return res.status(500).json({ error: "حدث خطأ في الخادم", details: error.message });
   }
 }
