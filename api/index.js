@@ -1,65 +1,73 @@
+import { useState } from "react";
+
 export default function Home() {
+  const [message, setMessage] = useState("");
+  const [response, setResponse] = useState("");
+  const [notification, setNotification] = useState("");
+
+  // إرسال طلب إلى ChatGPT
   const sendMessage = async () => {
-    const message = document.getElementById("message").value;
-    if (!message) return alert("أدخل الرسالة أولاً");
-
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message }),
-    });
-
-    const data = await res.json();
-    alert(data.response || "تم الإرسال!");
+    if (!message) return alert("أدخل رسالة");
+    try {
+      const res = await fetch("/api/chatgpt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
+      const data = await res.json();
+      setResponse(data.reply || "لا يوجد رد");
+    } catch (error) {
+      console.error(error);
+      setResponse("حدث خطأ");
+    }
   };
 
+  // إرسال إشعار
   const sendNotification = async () => {
-    const notification = document.getElementById("notification").value;
-    if (!notification) return alert("أدخل الإشعار أولاً");
-
-    const res = await fetch("/api/notify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ notification }),
-    });
-
-    const data = await res.json();
-    alert(data.message || "تم إرسال الإشعار!");
+    if (!notification) return alert("أدخل الإشعار");
+    try {
+      const res = await fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notification }),
+      });
+      const data = await res.json();
+      alert(data.message);
+    } catch (error) {
+      console.error(error);
+      alert("خطأ أثناء إرسال الإشعار");
+    }
   };
 
   return (
-    <div style={{
-      fontFamily: "Arial, sans-serif",
-      padding: "30px",
-      maxWidth: "600px",
-      margin: "auto",
-      backgroundColor: "#111",
-      color: "#fff",
-      borderRadius: "12px",
-      boxShadow: "0 0 20px rgba(0,0,0,0.5)"
-    }}>
-      <h1 style={{ textAlign: "center", marginBottom: "20px" }}>Dark Control</h1>
+    <div style={{ fontFamily: "Arial", padding: "20px" }}>
+      <h1 style={{ textAlign: "center" }}>Dark Control</h1>
 
+      {/* قسم إرسال رسالة إلى ChatGPT */}
       <div style={{ marginBottom: "20px" }}>
-        <h3>إرسال رسالة إلى ChatGPT</h3>
-        <textarea id="message" placeholder="اكتب رسالتك هنا..." style={{
-          width: "100%", height: "100px", padding: "10px", borderRadius: "8px", border: "none"
-        }}></textarea>
-        <button onClick={sendMessage} style={{
-          width: "100%", marginTop: "10px", padding: "12px", background: "#0070f3", color: "#fff",
-          fontSize: "16px", border: "none", borderRadius: "8px", cursor: "pointer"
-        }}>إرسال إلى ChatGPT</button>
+        <h3>أرسل طلب إلى ChatGPT</h3>
+        <input
+          type="text"
+          placeholder="اكتب رسالتك هنا..."
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          style={{ width: "80%", padding: "10px", marginRight: "10px" }}
+        />
+        <button onClick={sendMessage}>إرسال إلى ChatGPT</button>
+        {response && <p><strong>الرد:</strong> {response}</p>}
       </div>
 
+      {/* قسم إرسال إشعار */}
       <div>
         <h3>إرسال إشعار</h3>
-        <input id="notification" type="text" placeholder="أدخل الإشعار هنا" style={{
-          width: "100%", padding: "10px", borderRadius: "8px", border: "none"
-        }} />
-        <button onClick={sendNotification} style={{
-          width: "100%", marginTop: "10px", padding: "12px", background: "#e91e63", color: "#fff",
-          fontSize: "16px", border: "none", borderRadius: "8px", cursor: "pointer"
-        }}>إرسال إشعار</button>
+        <input
+          type="text"
+          placeholder="أدخل الإشعار هنا"
+          value={notification}
+          onChange={(e) => setNotification(e.target.value)}
+          style={{ width: "80%", padding: "10px", marginRight: "10px" }}
+        />
+        <button onClick={sendNotification}>إرسال إشعار</button>
       </div>
     </div>
   );
