@@ -4,27 +4,31 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [response, setResponse] = useState("");
   const [notification, setNotification] = useState("");
+  const [status, setStatus] = useState("");
 
-  // إرسال طلب إلى ChatGPT
-  const sendMessage = async () => {
-    if (!message) return alert("أدخل رسالة");
+  const sendToChat = async () => {
+    if (!message.trim()) return alert("أدخل رسالة");
+    setStatus("جارٍ الإرسال إلى ChatGPT...");
+    setResponse("");
     try {
-      const res = await fetch("/api/chatgpt", {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
       });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "خطأ");
       setResponse(data.reply || "لا يوجد رد");
-    } catch (error) {
-      console.error(error);
-      setResponse("حدث خطأ");
+    } catch (e) {
+      setResponse("حدث خطأ: " + e.message);
+    } finally {
+      setStatus("");
     }
   };
 
-  // إرسال إشعار
-  const sendNotification = async () => {
-    if (!notification) return alert("أدخل الإشعار");
+  const sendNotify = async () => {
+    if (!notification.trim()) return alert("أدخل نص الإشعار");
+    setStatus("جارٍ إرسال الإشعار إلى تيليغرام...");
     try {
       const res = await fetch("/api/notify", {
         method: "POST",
@@ -32,43 +36,57 @@ export default function Home() {
         body: JSON.stringify({ notification }),
       });
       const data = await res.json();
-      alert(data.message);
-    } catch (error) {
-      console.error(error);
-      alert("خطأ أثناء إرسال الإشعار");
+      if (!res.ok) throw new Error(data.error || "خطأ");
+      alert("✅ تم إرسال الإشعار إلى تيليغرام");
+      setNotification("");
+    } catch (e) {
+      alert("❌ فشل إرسال الإشعار: " + e.message);
+    } finally {
+      setStatus("");
     }
   };
 
   return (
-    <div style={{ fontFamily: "Arial", padding: "20px" }}>
-      <h1 style={{ textAlign: "center" }}>Dark Control</h1>
+    <div style={{ fontFamily: "Arial", padding: 24, maxWidth: 720, margin: "0 auto", color: "#f0f6fc", background: "#0d1117", minHeight: "100vh" }}>
+      <h1 style={{ textAlign: "center", color: "#58a6ff" }}>Dark Control</h1>
 
-      {/* قسم إرسال رسالة إلى ChatGPT */}
-      <div style={{ marginBottom: "20px" }}>
-        <h3>أرسل طلب إلى ChatGPT</h3>
-        <input
-          type="text"
+      {/* ChatGPT */}
+      <div style={{ background: "#161b22", padding: 16, borderRadius: 12, marginBottom: 16 }}>
+        <h3 style={{ color: "#f0883e" }}>إرسال طلب إلى ChatGPT</h3>
+        <textarea
           placeholder="اكتب رسالتك هنا..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          style={{ width: "80%", padding: "10px", marginRight: "10px" }}
+          rows={4}
+          style={{ width: "100%", padding: 12, borderRadius: 8, border: "1px solid #30363d", background: "#0d1117", color: "#f0f6fc" }}
         />
-        <button onClick={sendMessage}>إرسال إلى ChatGPT</button>
-        {response && <p><strong>الرد:</strong> {response}</p>}
+        <button onClick={sendToChat} style={{ marginTop: 10, padding: "10px 16px", borderRadius: 8, border: 0, background: "#238636", color: "#fff", fontWeight: 700, cursor: "pointer" }}>
+          إرسال إلى ChatGPT
+        </button>
+        {response && (
+          <div style={{ marginTop: 12, background: "#0d1117", border: "1px solid #30363d", borderRadius: 8, padding: 12 }}>
+            <strong>رد ChatGPT:</strong>
+            <div style={{ marginTop: 6, whiteSpace: "pre-wrap" }}>{response}</div>
+          </div>
+        )}
       </div>
 
-      {/* قسم إرسال إشعار */}
-      <div>
-        <h3>إرسال إشعار</h3>
+      {/* Notify */}
+      <div style={{ background: "#161b22", padding: 16, borderRadius: 12 }}>
+        <h3 style={{ color: "#f0883e" }}>إرسال إشعار (Telegram)</h3>
         <input
           type="text"
-          placeholder="أدخل الإشعار هنا"
+          placeholder="أدخل نص الإشعار هنا"
           value={notification}
           onChange={(e) => setNotification(e.target.value)}
-          style={{ width: "80%", padding: "10px", marginRight: "10px" }}
+          style={{ width: "100%", padding: 12, borderRadius: 8, border: "1px solid #30363d", background: "#0d1117", color: "#f0f6fc" }}
         />
-        <button onClick={sendNotification}>إرسال إشعار</button>
+        <button onClick={sendNotify} style={{ marginTop: 10, padding: "10px 16px", borderRadius: 8, border: 0, background: "#0d6efd", color: "#fff", fontWeight: 700, cursor: "pointer" }}>
+          إرسال إشعار
+        </button>
       </div>
+
+      {status && <p style={{ marginTop: 16, textAlign: "center" }}>⏳ {status}</p>}
     </div>
   );
 }
