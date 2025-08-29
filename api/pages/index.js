@@ -1,64 +1,63 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 export default function Home() {
-  const [message, setMessage] = useState("");
-  const [response, setResponse] = useState("");
+  const [message, setMessage] = useState('');
+  const [reply, setReply] = useState('');
   const [loading, setLoading] = useState(false);
 
   const sendMessage = async () => {
-    if (!message) return alert("أدخل رسالتك أولاً");
+    if (!message.trim()) {
+      alert('الرجاء إدخال رسالة قبل الإرسال');
+      return;
+    }
 
     setLoading(true);
-    setResponse("");
+    setReply('');
 
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ message }),
       });
 
-      const data = await res.json();
-
-      if (data.error) {
-        setResponse("❌ خطأ: " + data.error);
-      } else {
-        setResponse(data.reply);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'فشل الإرسال');
       }
+
+      const data = await response.json();
+      setReply(data.reply);
     } catch (error) {
-      setResponse("❌ حدث خطأ في الإرسال");
+      console.error('Error:', error);
+      alert('حدث خطأ أثناء الإرسال: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: "500px", margin: "50px auto", fontFamily: "Arial" }}>
-      <h1 style={{ textAlign: "center" }}>Dark Control</h1>
+    <div style={{ padding: '20px', fontFamily: 'Arial' }}>
+      <h1>Dark Control</h1>
       <textarea
-        placeholder="اكتب رسالتك هنا..."
+        rows="4"
+        cols="50"
+        placeholder="اكتب رسالتك لـ ChatGPT"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        style={{ width: "100%", height: "100px", padding: "10px", marginBottom: "10px" }}
       />
-      <button
-        onClick={sendMessage}
-        style={{
-          width: "100%",
-          padding: "10px",
-          backgroundColor: "#333",
-          color: "#fff",
-          border: "none",
-          cursor: "pointer"
-        }}
-        disabled={loading}
-      >
-        {loading ? "جاري الإرسال..." : "إرسال إلى ChatGPT"}
+      <br />
+      <button onClick={sendMessage} disabled={loading}>
+        {loading ? 'جارٍ الإرسال...' : 'إرسال'}
       </button>
-      <div style={{ marginTop: "20px", background: "#f4f4f4", padding: "15px" }}>
-        <h3>الرد:</h3>
-        <p>{response || "لا يوجد رد بعد"}</p>
-      </div>
+      {reply && (
+        <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #ccc' }}>
+          <strong>رد ChatGPT:</strong>
+          <p>{reply}</p>
+        </div>
+      )}
     </div>
   );
 }
